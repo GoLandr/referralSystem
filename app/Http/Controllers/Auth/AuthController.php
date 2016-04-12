@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Managers\ReferralKeyManager;
 use App\User;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Validator;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
@@ -21,7 +23,10 @@ class AuthController extends Controller
     |
     */
 
-    use AuthenticatesAndRegistersUsers, ThrottlesLogins;
+    use AuthenticatesAndRegistersUsers {
+        showRegistrationForm as traitShowRegistrationForm;
+    }
+    use ThrottlesLogins;
 
     /**
      * Where to redirect users after login / registration.
@@ -64,9 +69,26 @@ class AuthController extends Controller
     protected function create(array $data)
     {
         return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']),
+            'name'          => $data['name'],
+            'email'         => $data['email'],
+            'password'      => bcrypt($data['password']),
+            'referral_id'   => ReferralKeyManager::findUserIdByReferralKey($data['referralKey']),
+            'referral_key'  => ReferralKeyManager::generate(),
         ]);
+    }
+
+    /**
+     * Extend showRegistrationForm from AuthenticatesAndRegistersUsers trait
+     *
+     * @param string $referralKey
+     * @return \Illuminate\Http\Response
+     */
+    public function showRegistrationForm($referralKey = '')
+    {
+        if ($referralKey && !ReferralKeyManager::check($referralKey)) {
+            throw new NotFoundHttpException('Referral ID not found');
+        }
+
+        return $this->traitShowRegistrationForm()->with('referralKey', $referralKey);
     }
 }
