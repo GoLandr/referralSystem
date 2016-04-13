@@ -13,6 +13,7 @@ class ReferralKeyManager
 
     /**
      * ReferralKeyManager constructor.
+     * 
      * @param DatabaseManager $db
      */
     public function __construct(DatabaseManager $db)

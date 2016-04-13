@@ -54,6 +54,8 @@ class PaymentManager
     }
 
     /**
+     * Get all payment for given user
+     *
      * @param User $user
      * @return mixed
      */

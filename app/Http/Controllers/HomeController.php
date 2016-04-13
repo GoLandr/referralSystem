@@ -15,7 +15,7 @@ class HomeController extends Controller
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param PaymentManager $paymentManager
      */
     public function __construct(PaymentManager $paymentManager)
     {
