@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Managers\PaymentManager;
 use App\Managers\ReferralKeyManager;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +27,10 @@ class MainProvider extends ServiceProvider
     {
         $this->app->singleton(ReferralKeyManager::class, function ($app) {
             return new ReferralKeyManager($app['db']);
+        });
+
+        $this->app->singleton(PaymentManager::class, function ($app) {
+            return new PaymentManager($app['db']);
         });
     }
 }

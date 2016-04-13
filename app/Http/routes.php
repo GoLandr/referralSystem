@@ -19,4 +19,4 @@ Route::auth();
 
 Route::get('register/{referral_key?}', 'Auth\AuthController@showRegistrationForm');
 
-Route::get('/home', 'HomeController@index');
+Route::match(['get', 'post'], '/home', 'HomeController@index');
