@@ -56,7 +56,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Amount</th>
-                            <th>Paid By</th>
+                            <th>From</th>
                             <th>Paid On</th>
                             <th>Type</th>
                         </tr>
@@ -69,12 +69,10 @@
                                 <td>{{ $payment->payer_name }}</td>
                                 <td>{{ $payment->created_at }}</td>
                                 <td>
-                                    @if ($payment->type == \App\Managers\PaymentManager::BASE_PAYMENT_TYPE)
+                                    @if ($payment->step == 0)
                                         Payment
-                                    @elseif ($payment->type == \App\Managers\PaymentManager::REFERRAL_PAYMENT_TYPE)
-                                        Referral bonus
                                     @else
-                                        Other
+                                        Referral bonus ({{$payment->step}} step)
                                     @endif
                                 </td>
                             </tr>

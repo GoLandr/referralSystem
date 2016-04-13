@@ -8,11 +8,9 @@ use Illuminate\Database\DatabaseManager;
 
 class PaymentManager
 {
-    const BASE_PAYMENT_TYPE = 0;
-
-    const REFERRAL_PAYMENT_TYPE = 1;
-
     const REFERRAL_PERCENT = 10;
+
+    const REFERRAL_STEPS = 2;
 
     /** @var DatabaseManager */
     protected $db;
@@ -28,31 +26,30 @@ class PaymentManager
     }
 
     /**
+     * Add amount to user (and recursively to referrals)
+     *
      * @param $amount
      * @param User $user
+     * @param int $step
+     * @param int $payerID
      */
-    public function add($amount, User $user)
+    public function add($amount, User $user, $step = 0, $payerID = 0)
     {
-        $payment = new Payments();
-        $payment->amount = $amount;
-        $payment->user_id = $user->id;
-        $payment->payer_id = $user->id;
-        $payment->type = self::BASE_PAYMENT_TYPE;
-        $payment->save();
+        $paymentAmount = $this->calcAmountByStep($amount, $step);
 
-        $this->db->table('users')->where(['id' => $user->id])->increment('balance', $amount);
-
-        if ($user->referral_id) {
-            $referralAmount = round($amount / self::REFERRAL_PERCENT, 2);
-
+        if ($paymentAmount) {
             $payment = new Payments();
-            $payment->amount = $referralAmount;
-            $payment->user_id = $user->referral_id;
-            $payment->payer_id = $user->id;
-            $payment->type = self::REFERRAL_PAYMENT_TYPE;
+            $payment->amount = $paymentAmount;
+            $payment->user_id = $user->id;
+            $payment->payer_id = $payerID ? $payerID : $user->id;
+            $payment->step = $step;
             $payment->save();
 
-            $this->db->table('users')->where(['id' => $user->referral_id])->increment('balance', $referralAmount);
+            $this->db->table('users')->where(['id' => $user->id])->increment('balance', $paymentAmount);
+
+            if ($step < self::REFERRAL_STEPS && $user->referral_id) {
+                self::add($paymentAmount, User::find($user->referral_id), ++$step, $user->id);
+            }
         }
     }
 
@@ -67,5 +64,21 @@ class PaymentManager
                         ->leftJoin('users as payer', 'payer.id', '=', 'payments.payer_id')
                         ->where('user_id', '=', $user->id)
                         ->get();
+    }
+
+    /**
+     * Algorithm of calculating amount for different steps of referral system
+     *    0 step: 100% (payer)
+     *    1 step: 10% (1st step referral)
+     *    2 step: 1% (2nd step referral)
+     *
+     * @param $amount
+     * @param $step
+     *
+     * @return mixed
+     */
+    protected function calcAmountByStep($amount, $step)
+    {
+        return $step ? round($amount / self::REFERRAL_PERCENT, 2) : $amount;
     }
 }

@@ -17,7 +17,7 @@ class CreatePaymentsTable extends Migration
             $table->integer('user_id')->unsigned();
             $table->integer('payer_id')->unsigned();
             $table->double('amount', 10, 2)->unsigned()->default(0);
-            $table->enum('type', [0, 1]);
+            $table->integer('step')->unsigned()->default(0);
             $table->timestamps();
 
             $table->foreign('user_id')
