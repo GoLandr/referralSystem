@@ -31,7 +31,7 @@ class ReferralKeyManager
     {
         do {
             $key = str_random($length);
-        } while (self::check($key));
+        } while ($this->check($key));
 
         return $key;
     }
