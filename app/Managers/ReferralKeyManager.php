@@ -2,11 +2,23 @@
 
 namespace App\Managers;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\DatabaseManager;
 
 class ReferralKeyManager
 {
+    /** @var DatabaseManager */
+    protected $db;
+
     const DEFAULT_LENGTH = 10;
+
+    /**
+     * ReferralKeyManager constructor.
+     * @param DatabaseManager $db
+     */
+    public function __construct(DatabaseManager $db)
+    {
+        $this->db = $db;
+    }
 
     /**
      * Generate new unique referral key
@@ -15,7 +27,7 @@ class ReferralKeyManager
      *
      * @return mixed
      */
-    public static function generate($length = self::DEFAULT_LENGTH)
+    public function generate($length = self::DEFAULT_LENGTH)
     {
         do {
             $key = str_random($length);
@@ -31,10 +43,12 @@ class ReferralKeyManager
      *
      * @return bool
      */
-    public static function check($key)
+    public function check($key)
     {
-        return (bool)DB::table('users')->where('referral_key', $key)
-            ->count();
+        return (bool)$this->db->connection()
+                          ->table('users')
+                          ->where('referral_key', $key)
+                          ->count();
     }
 
     /**
@@ -44,8 +58,11 @@ class ReferralKeyManager
      *
      * @return mixed
      */
-    public static function findUserIdByReferralKey($key)
+    public function findUserIdByReferralKey($key)
     {
-        return DB::table('users')->where('referral_key', $key)->value('id');
+        return $this->db->connection()
+                    ->table('users')
+                    ->where('referral_key', $key)
+                    ->value('id');
     }
 }

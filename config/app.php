@@ -160,6 +160,7 @@ return [
          * Custom
          */
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+        App\Providers\MainProvider::class,
     ],
 
     /*

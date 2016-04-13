@@ -35,13 +35,18 @@ class AuthController extends Controller
      */
     protected $redirectTo = '/';
 
+    /** @var ReferralKeyManager */
+    protected $referralKeyManager;
+
     /**
      * Create a new authentication controller instance.
      *
-     * @return void
+     * @param ReferralKeyManager $referralKeyManager
      */
-    public function __construct()
+    public function __construct(ReferralKeyManager $referralKeyManager)
     {
+        $this->referralKeyManager = $referralKeyManager;
+
         $this->middleware($this->guestMiddleware(), ['except' => 'logout']);
     }
 
@@ -72,8 +77,8 @@ class AuthController extends Controller
             'name'          => $data['name'],
             'email'         => $data['email'],
             'password'      => bcrypt($data['password']),
-            'referral_id'   => ReferralKeyManager::findUserIdByReferralKey($data['referralKey']),
-            'referral_key'  => ReferralKeyManager::generate(),
+            'referral_id'   => $this->referralKeyManager->findUserIdByReferralKey($data['referralKey']),
+            'referral_key'  => $this->referralKeyManager->generate(),
         ]);
     }
 
@@ -85,7 +90,7 @@ class AuthController extends Controller
      */
     public function showRegistrationForm($referralKey = '')
     {
-        if ($referralKey && !ReferralKeyManager::check($referralKey)) {
+        if ($referralKey && !$this->referralKeyManager->check($referralKey)) {
             throw new NotFoundHttpException('Referral ID not found');
         }
 
